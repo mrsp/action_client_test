@@ -513,6 +513,8 @@ def getMocapNETJointNames():
 #---------------------------------------------------
  
 
+def degreesToRadians(degrees):
+  return degrees * math.pi / 180.0
 
 
 
@@ -528,6 +530,7 @@ RLeg_odom = Odometry()
 CoM_odom = Odometry()
 base_odom = Odometry()
 joint_state = JointState()
+
 
 
 def JointStatecallback(data):
@@ -562,14 +565,19 @@ def OdomCallback(data):
 
 
 from std_msgs.msg import Float32MultiArray
-mocapnetLabels = getMocapNETJointNames()
+mocapNETLabels = getMocapNETJointNames()
+
+mocapNETPose = list()
+mocapNETPoseExists = 0
 
 #define function/functions to provide the required functionality
 def mnet_new_pose_callback(msg):
     #make_something_here_with msg.data
     #rospy.loginfo("I heard %s", msg.data)
+    mocapNETPose=msg.data[i]
+    mocapNETPoseExists=1
     for i in range(0,len(msg.data)):
-        print (i,"[",mocapnetLabels[i],"] = ",msg.data[i]," ")
+        print (i,"[",mocapNETLabels[i],"] = ",msg.data[i]," ")
 
 
 def action_client():
@@ -652,41 +660,57 @@ def action_client():
     tmp_dof_task.desired_angle =  1.5
     tmp_dof_task.name = "LShoulderPitch"
     goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
     tmp_dof_task.desired_angle = 0.15
     tmp_dof_task.name = "LShoulderRoll"
     goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
     tmp_dof_task.desired_angle = 0
     tmp_dof_task.name = "LElbowYaw"
     goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
     tmp_dof_task.desired_angle =  -0.0349066
     tmp_dof_task.name = "LElbowRoll"
     goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
     tmp_dof_task.desired_angle = -1.5
     tmp_dof_task.name = "LWristYaw"
     goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
     tmp_dof_task.desired_angle = 0
     tmp_dof_task.name = "LHand"
     goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
 
     #RIGHT ARM
     tmp_dof_task.desired_angle =  1.5
+    if (mocapNETPoseExists):
+      tmp_dof_task.desired_angle =  degreesToRadians(mocapNETPose[237]) #rshoulder_Zrotation
     tmp_dof_task.name = "RShoulderPitch"
     goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
     tmp_dof_task.desired_angle = -0.15
+    if (mocapNETPoseExists):
+      tmp_dof_task.desired_angle =  degreesToRadians(mocapNETPose[238]) #rshoulder_Xrotation
     tmp_dof_task.name = "RShoulderRoll"
     goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
     tmp_dof_task.desired_angle =  0
     tmp_dof_task.name = "RElbowYaw"
     goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
     tmp_dof_task.desired_angle = 0.0349066
     tmp_dof_task.name = "RElbowRoll"
     goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
     tmp_dof_task.desired_angle = 1.5
     tmp_dof_task.name = "RWristYaw"
     goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
     tmp_dof_task.desired_angle = 0
     tmp_dof_task.name = "RHand"
     goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
 
 
 
