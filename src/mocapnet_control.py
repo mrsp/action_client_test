@@ -602,114 +602,138 @@ def action_client():
     dof_gain = 0.6
     dof_weight = 5.0e-05
     goal.Joints = []
-    tmp_dof_task = whole_body_ik_msgs.msg.DOFTask()
-    tmp_dof_task.weight = dof_weight
-    tmp_dof_task.gain = dof_gain
+    pose = whole_body_ik_msgs.msg.DOFTask()
+    pose.weight = dof_weight
+    pose.gain = dof_gain
+
+
     #HEAD
-    tmp_dof_task.desired_angle = 0.0
-    tmp_dof_task.name = "HeadYaw"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
-    tmp_dof_task.desired_angle = 0.0
-    tmp_dof_task.name = "HeadPitch"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
+    pose.desired_angle = 0.0
+    pose.name = "HeadYaw"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
+    pose.desired_angle = 0.0
+    pose.name = "HeadPitch"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
     
 
-    
     #LEFT LEG
-    tmp_dof_task.desired_angle = 0.0
-    tmp_dof_task.name = "LHipYawPitch"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
-    tmp_dof_task.desired_angle = 0.0
-    tmp_dof_task.name = "LHipRoll"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
-    tmp_dof_task.desired_angle = -0.3976
-    tmp_dof_task.name = "LHipPitch"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
-    tmp_dof_task.desired_angle =  0.85
-    tmp_dof_task.name = "LKneePitch"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
-    tmp_dof_task.desired_angle = -0.4427
-    tmp_dof_task.name = "LAnklePitch"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
-    tmp_dof_task.desired_angle = -0.009
-    tmp_dof_task.name = "LAnkleRoll"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
+    pose.desired_angle = 0.0
+    pose.name = "LHipYawPitch"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
+    pose.desired_angle = 0.0
+    pose.name = "LHipRoll"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
+    pose.desired_angle = -0.3976
+    pose.name = "LHipPitch"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
+    pose.desired_angle =  0.85
+    pose.name = "LKneePitch"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
+    pose.desired_angle = -0.4427
+    pose.name = "LAnklePitch"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
+    pose.desired_angle = -0.009
+    pose.name = "LAnkleRoll"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
 
 
     #RIGHT LEG
-    tmp_dof_task.desired_angle = 0.0
-    tmp_dof_task.name = "RHipYawPitch"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
-    tmp_dof_task.desired_angle = 0.0
-    tmp_dof_task.name = "RHipRoll"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
-    tmp_dof_task.desired_angle = -0.3976
-    tmp_dof_task.name = "RHipPitch"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
-    tmp_dof_task.desired_angle =  0.85
-    tmp_dof_task.name = "RKneePitch"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
-    tmp_dof_task.desired_angle = -0.4427
-    tmp_dof_task.name = "RAnklePitch"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
-    tmp_dof_task.desired_angle = -0.009
-    tmp_dof_task.name = "RAnkleRoll"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    #------------------------------------------------- 
+    pose.desired_angle = 0.0
+    pose.name = "RHipYawPitch"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
+    pose.desired_angle = 0.0
+    pose.name = "RHipRoll"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
+    pose.desired_angle = -0.3976
+    pose.name = "RHipPitch"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
+    pose.desired_angle =  0.85
+    pose.name = "RKneePitch"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
+    pose.desired_angle = -0.4427
+    pose.name = "RAnklePitch"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
+    pose.desired_angle = -0.009
+    pose.name = "RAnkleRoll"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
   
     #LEFT ARM
-    tmp_dof_task.desired_angle =  1.5
-    tmp_dof_task.name = "LShoulderPitch"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
     #------------------------------------------------- 
-    tmp_dof_task.desired_angle = 0.15
-    tmp_dof_task.name = "LShoulderRoll"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    pose.desired_angle =  1.5
+    pose.name = "LShoulderPitch"
+    goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
-    tmp_dof_task.desired_angle = 0
-    tmp_dof_task.name = "LElbowYaw"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    pose.desired_angle = 0.15
+    pose.name = "LShoulderRoll"
+    goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
-    tmp_dof_task.desired_angle =  -0.0349066
-    tmp_dof_task.name = "LElbowRoll"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    pose.desired_angle = 0
+    pose.name = "LElbowYaw"
+    goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
-    tmp_dof_task.desired_angle = -1.5
-    tmp_dof_task.name = "LWristYaw"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    pose.desired_angle =  -0.0349066
+    pose.name = "LElbowRoll"
+    goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
-    tmp_dof_task.desired_angle = 0
-    tmp_dof_task.name = "LHand"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    pose.desired_angle = -1.5
+    pose.name = "LWristYaw"
+    goal.Joints.append(copy.deepcopy(pose))
+    #------------------------------------------------- 
+    pose.desired_angle = 0
+    pose.name = "LHand"
+    goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
 
     #RIGHT ARM
-    tmp_dof_task.desired_angle =  1.5
+    #------------------------------------------------- 
+    pose.desired_angle =  1.5
     if (mocapNETPoseExists):
-      tmp_dof_task.desired_angle =  degreesToRadians(mocapNETPose[237]) #rshoulder_Zrotation
-    tmp_dof_task.name = "RShoulderPitch"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+      pose.desired_angle =  degreesToRadians(mocapNETPose[237]) #rshoulder_Zrotation
+    pose.name = "RShoulderPitch"
+    goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
-    tmp_dof_task.desired_angle = -0.15
+    pose.desired_angle = -0.15
     if (mocapNETPoseExists):
-      tmp_dof_task.desired_angle =  degreesToRadians(mocapNETPose[238]) #rshoulder_Xrotation
-    tmp_dof_task.name = "RShoulderRoll"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+      pose.desired_angle =  degreesToRadians(mocapNETPose[238]) #rshoulder_Xrotation
+    pose.name = "RShoulderRoll"
+    goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
-    tmp_dof_task.desired_angle =  0
-    tmp_dof_task.name = "RElbowYaw"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    pose.desired_angle =  0
+    if (mocapNETPoseExists):
+      pose.desired_angle =  degreesToRadians(mocapNETPose[240]) #relbow_Zrotation
+    pose.name = "RElbowYaw"
+    goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
-    tmp_dof_task.desired_angle = 0.0349066
-    tmp_dof_task.name = "RElbowRoll"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    pose.desired_angle = 0.0349066
+    if (mocapNETPoseExists):
+      pose.desired_angle =  degreesToRadians(mocapNETPose[241]) #relbow_Xrotation
+    pose.name = "RElbowRoll"
+    goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
-    tmp_dof_task.desired_angle = 1.5
-    tmp_dof_task.name = "RWristYaw"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    pose.desired_angle = 1.5
+    pose.name = "RWristYaw"
+    goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
-    tmp_dof_task.desired_angle = 0
-    tmp_dof_task.name = "RHand"
-    goal.Joints.append(copy.deepcopy(tmp_dof_task))
+    pose.desired_angle = 0
+    pose.name = "RHand"
+    goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
 
 
