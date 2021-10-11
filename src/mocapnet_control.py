@@ -610,10 +610,14 @@ def action_client():
     #HEAD
     #------------------------------------------------- 
     pose.desired_angle = 0.0
+    if (mocapNETPoseExists):
+      pose.desired_angle =  degreesToRadians(mocapNETPose[12]) #neck_Zrotation
     pose.name = "HeadYaw"
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = 0.0
+    if (mocapNETPoseExists):
+      pose.desired_angle =  degreesToRadians(mocapNETPose[13]) #neck_Xrotation
     pose.name = "HeadPitch"
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
@@ -677,22 +681,32 @@ def action_client():
     #LEFT ARM
     #------------------------------------------------- 
     pose.desired_angle =  1.5
+    if (mocapNETPoseExists):
+      pose.desired_angle =  degreesToRadians(mocapNETPose[315]) #lshoulder_Zrotation
     pose.name = "LShoulderPitch"
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = 0.15
+    if (mocapNETPoseExists):
+      pose.desired_angle =  degreesToRadians(mocapNETPose[316]) #lshoulder_Xrotation
     pose.name = "LShoulderRoll"
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = 0
+    if (mocapNETPoseExists):
+      pose.desired_angle =  degreesToRadians(mocapNETPose[318]) #lelbow_Zrotation
     pose.name = "LElbowYaw"
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle =  -0.0349066
+    if (mocapNETPoseExists):
+      pose.desired_angle =  degreesToRadians(mocapNETPose[319]) #lelbow_Xrotation
     pose.name = "LElbowRoll"
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = -1.5
+    if (mocapNETPoseExists):
+      pose.desired_angle =  degreesToRadians(mocapNETPose[321]) #lhand_Zrotation
     pose.name = "LWristYaw"
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
@@ -728,6 +742,8 @@ def action_client():
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = 1.5
+    if (mocapNETPoseExists):
+      pose.desired_angle =  degreesToRadians(mocapNETPose[244]) #rhand_Xrotation
     pose.name = "RWristYaw"
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
