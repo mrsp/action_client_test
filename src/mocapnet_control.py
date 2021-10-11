@@ -574,7 +574,7 @@ mocapNETPoseExists = 0
 def mnet_new_pose_callback(msg):
     #make_something_here_with msg.data
     #rospy.loginfo("I heard %s", msg.data)
-    mocapNETPose=msg.data[i]
+    mocapNETPose=msg.data
     mocapNETPoseExists=1
     for i in range(0,len(msg.data)):
         print (i,"[",mocapNETLabels[i],"] = ",msg.data[i]," ")
