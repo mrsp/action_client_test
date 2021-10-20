@@ -570,22 +570,12 @@ mocapNETLabels = getMocapNETJointNames()
 mocapNETPose = list()
 mocapNETPoseExists = 0
 
-#define function/functions to provide the required functionality
-def mnet_new_pose_callback(msg):
-    #make_something_here_with msg.data
-    #rospy.loginfo("I heard %s", msg.data)
-    mocapNETPose=msg.data
-    mocapNETPoseExists=1
-    for i in range(0,len(msg.data)):
-        print (i,"[",mocapNETLabels[i],"] = ",msg.data[i]," ")
-
-
 def action_client():
     # Creates the SimpleActionClient, passing the type of the action
     client = actionlib.SimpleActionClient('/nao_raisim_ros/whole_body_control', whole_body_ik_msgs.msg.HumanoidAction)
 
 
-
+    print("Waiting for server..")
     # Waits until the action server has started up and started
     # listening for goals.
     client.wait_for_server()
@@ -896,6 +886,25 @@ def action_client():
     # Prints out the result of executing the action
     return client.get_result()  
 
+
+#define function/functions to provide the required functionality
+def mnet_new_pose_callback(msg):
+    #make_something_here_with msg.data
+    #rospy.loginfo("I heard %s", msg.data)
+    mocapNETPose=msg.data
+    mocapNETPoseExists=1
+    for i in range(0,len(msg.data)):
+        if (msg.data[i]!=0.0):
+            print (i,"[",mocapNETLabels[i],"] = ",msg.data[i]," ")
+    print("Pushing data")
+    #@Stelios This never returns.. ->
+    result = action_client()
+    print("Result:", action_client)
+
+
+
+
+
 if __name__ == '__main__':
     try:
         # Initializes a rospy node so that the SimpleActionClient can
@@ -922,3 +931,4 @@ if __name__ == '__main__':
         print("Result:", action_client)
     except rospy.ROSInterruptException:
         print("program interrupted before completion")
+
