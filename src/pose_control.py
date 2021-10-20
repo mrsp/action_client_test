@@ -49,7 +49,7 @@ def OdomCallback(data):
 
 def action_client():
     # Creates the SimpleActionClient, passing the type of the action
-    client = actionlib.SimpleActionClient('/nao_raisim_ros/whole_body_control', whole_body_ik_msgs.msg.HumanoidAction)
+    client = actionlib.SimpleActionClient('/humanoid/whole_body_control', whole_body_ik_msgs.msg.HumanoidAction)
 
     # Waits until the action server has started up and started
     # listening for goals.
