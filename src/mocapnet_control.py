@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 #from __future__ import print_function 
 
+#Last change by Ammar 18/11/21
 import rospy, time, math, cv2, sys
 import actionlib
 import copy
@@ -572,9 +573,8 @@ from std_msgs.msg import Float32MultiArray
 mocapNETLabels = getMocapNETJointNames()
 
 mocapNETPose = list()
-mocapNETPoseExists = 0
 
-def action_client(moveHead,moveRightArm,moveLeftArm):
+def action_client(mocapNETPose,moveHead,moveRightArm,moveLeftArm):
     # Creates the SimpleActionClient, passing the type of the action
     client = actionlib.SimpleActionClient('/humanoid/whole_body_control', whole_body_ik_msgs.msg.HumanoidAction)
 
@@ -594,25 +594,30 @@ def action_client(moveHead,moveRightArm,moveLeftArm):
 
     #Do Not Change
     dof_gain = 0.6
-    dof_weight = 5.0e-05
+    dof_weight = 5e-5
     goal.Joints = []
     pose = whole_body_ik_msgs.msg.DOFTask()
     pose.weight = dof_weight
     pose.gain = dof_gain
 
+    mocapNETPoseExists = 0
+    if (len(mocapNETPose)>0):
+         mocapNETPoseExists=1
 
     #HEAD
     #------------------------------------------------- 
     pose.desired_angle = 0.0
-    if (mocapNETPoseExists and moveHead):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[12]) #neck_Zrotation
     pose.name = "HeadYaw"
+    if (mocapNETPoseExists and moveHead):
+      pose.desired_angle =  degreesToRadians(mocapNETPose[14]) #neck_Yrotation
+      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = 0.0
+    pose.name = "HeadPitch"
     if (mocapNETPoseExists and moveHead):
       pose.desired_angle =  degreesToRadians(mocapNETPose[13]) #neck_Xrotation
-    pose.name = "HeadPitch"
+      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     
@@ -675,33 +680,38 @@ def action_client(moveHead,moveRightArm,moveLeftArm):
     #LEFT ARM
     #------------------------------------------------- 
     pose.desired_angle =  1.5
+    pose.name = "LShoulderPitch"
     if (mocapNETPoseExists and moveLeftArm):
       pose.desired_angle =  degreesToRadians(mocapNETPose[315]) #lshoulder_Zrotation
-    pose.name = "LShoulderPitch"
+      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = 0.15
+    pose.name = "LShoulderRoll"
     if (mocapNETPoseExists and moveLeftArm):
       pose.desired_angle =  degreesToRadians(mocapNETPose[316]) #lshoulder_Xrotation
-    pose.name = "LShoulderRoll"
+      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = 0
+    pose.name = "LElbowYaw"
     if (mocapNETPoseExists and moveLeftArm):
       pose.desired_angle =  degreesToRadians(mocapNETPose[318]) #lelbow_Zrotation
-    pose.name = "LElbowYaw"
+      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle =  -0.0349066
+    pose.name = "LElbowRoll"
     if (mocapNETPoseExists and moveLeftArm):
       pose.desired_angle =  degreesToRadians(mocapNETPose[319]) #lelbow_Xrotation
-    pose.name = "LElbowRoll"
+      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = -1.5
+    pose.name = "LWristYaw"
     if (mocapNETPoseExists and moveLeftArm):
       pose.desired_angle =  degreesToRadians(mocapNETPose[321]) #lhand_Zrotation
-    pose.name = "LWristYaw"
+      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = 0
@@ -712,33 +722,38 @@ def action_client(moveHead,moveRightArm,moveLeftArm):
     #RIGHT ARM
     #------------------------------------------------- 
     pose.desired_angle =  1.5
+    pose.name = "RShoulderPitch"
     if (mocapNETPoseExists and moveRightArm):
       pose.desired_angle =  degreesToRadians(mocapNETPose[237]) #rshoulder_Zrotation
-    pose.name = "RShoulderPitch"
+      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = -0.15
+    pose.name = "RShoulderRoll"
     if (mocapNETPoseExists and moveRightArm):
       pose.desired_angle =  degreesToRadians(mocapNETPose[238]) #rshoulder_Xrotation
-    pose.name = "RShoulderRoll"
+      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle =  0
+    pose.name = "RElbowYaw"
     if (mocapNETPoseExists and moveRightArm):
       pose.desired_angle =  degreesToRadians(mocapNETPose[240]) #relbow_Zrotation
-    pose.name = "RElbowYaw"
+      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = 0.0349066
+    pose.name = "RElbowRoll"
     if (mocapNETPoseExists and moveRightArm):
       pose.desired_angle =  degreesToRadians(mocapNETPose[241]) #relbow_Xrotation
-    pose.name = "RElbowRoll"
+      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = 1.5
+    pose.name = "RWristYaw"
     if (mocapNETPoseExists and moveRightArm):
       pose.desired_angle =  degreesToRadians(mocapNETPose[244]) #rhand_Xrotation
-    pose.name = "RWristYaw"
+      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
     goal.Joints.append(copy.deepcopy(pose))
     #------------------------------------------------- 
     pose.desired_angle = 0
@@ -896,12 +911,11 @@ def mnet_new_pose_callback(msg):
     #make_something_here_with msg.data
     #rospy.loginfo("I heard %s", msg.data)
     mocapNETPose=msg.data
-    mocapNETPoseExists=1
-    for i in range(0,len(msg.data)):
-        if (msg.data[i]!=0.0):
-            print (i,"[",mocapNETLabels[i],"] = ",msg.data[i]," ")
+    #for i in range(0,len(msg.data)):
+    #    if (msg.data[i]!=0.0):
+    #        print (i,"[",mocapNETLabels[i],"] = ",msg.data[i]," ")
     print("Pushing data")
-    result = action_client(moveHead,moveRightArm,moveLeftArm)
+    result = action_client(mocapNETPose,moveHead,moveRightArm,moveLeftArm)
     #print("Result:", action_client)
 
 
@@ -927,7 +941,7 @@ if __name__ == '__main__':
         #Give a first "default" action before subscribing and switching to MocapNET input
         for i in range(0,100):
             rate.sleep()
-            result = action_client(0,0,0) # the zeros will also prevent MocapNET input
+            result = action_client(list(),0,0,0) # the zeros will also prevent MocapNET input
 
         #subscribe to a topic using rospy.Subscriber class "std_msgs/Float32MultiArray"
         sub=rospy.Subscriber('/mocapnet_rosnode/bvhFrame', Float32MultiArray, mnet_new_pose_callback)
