@@ -606,6 +606,9 @@ def action_client(mocapNETPose,moveHead,moveRightArm,moveLeftArm):
     if (len(mocapNETPose)>0):
          mocapNETPoseExists=1
 
+    #The NAO poses.. 
+    #http://doc.aldebaran.com/2-1/family/robots/postures_robot.html
+
     #HEAD
     #------------------------------------------------- 
     pose.desired_angle = 0.0
