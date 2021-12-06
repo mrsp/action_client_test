@@ -520,6 +520,19 @@ def getMocapNETJointNames():
 #---------------------------------------------------
  
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 def decomposeRollPitchYawtoRollYaw(limbLength,roll,pitch,yaw):
     #TODO: add a decomposition here using numpy..!
     return roll,yaw
@@ -581,38 +594,73 @@ mocapNETLabels = getMocapNETJointNames()
 
 mocapNETPose = list()
 
-def action_client(mocapNETPose,moveHead,moveRightArm,moveLeftArm):
-    # Creates the SimpleActionClient, passing the type of the action
-    client = actionlib.SimpleActionClient('/humanoid/whole_body_control', whole_body_ik_msgs.msg.HumanoidAction)
-
-
-    print("Waiting for server..")
-    # Waits until the action server has started up and started
-    # listening for goals.
-    client.wait_for_server()
-    print("WBC Server is UP")
-    # Creates a goal to send to the action server.
-    goal = whole_body_ik_msgs.msg.HumanoidGoal()
-
-    goal.odom = base_odom
-    goal.joint_state = joint_state
-
-    goal.dt = 0.01 #Hardware Control Cycle of NAO
-
-    #Do Not Change
-    dof_gain = 0.45
-    dof_weight = 5e-5
-    goal.Joints = []
-    pose = whole_body_ik_msgs.msg.DOFTask()
-    pose.weight = dof_weight
-    pose.gain = dof_gain
-
+def broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm,moveRightLeg,moveLeftLeg):
     mocapNETPoseExists = 0
     if (len(mocapNETPose)>0):
          mocapNETPoseExists=1
 
     #The NAO poses.. 
     #http://doc.aldebaran.com/2-1/family/robots/postures_robot.html
+    
+    #The ROS JointState Sensor Message
+    #http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/JointState.html
+    joints.name = [ 
+                   'HeadYaw',        #0 
+                   'HeadPitch',      #1 
+                   'LHipYawPitch',   #2
+                   'LHipRoll',       #3
+                   'LHipPitch',      #4
+                   'LKneePitch',     #5
+                   'LAnklePitch',    #6
+                   'LAnkleRoll',     #7
+                   'RHipYawPitch',   #8
+                   'RHipRoll',       #9  
+                   'RHipPitch',      #10
+                   'RKneePitch',     #11
+                   'RAnklePitch',    #12  
+                   'RAnkleRoll',     #13
+                   'LShoulderPitch', #14
+                   'LShoulderRoll',  #15
+                   'LElbowYaw' ,     #16
+                   'LElbowRoll',     #17
+                   'LWristYaw',      #18
+                   'LHand',          #19
+                   'RShoulderPitch', #20
+                   'RShoulderRoll',  #21
+                   'RElbowYaw',      #22
+                   'RElbowRoll',     #23
+                   'RWristYaw',      #24
+                   'RHand'           #25
+                 ]
+
+    joints.position = [
+                       degreesToRadians(mocapNETPose[14]),           #neck_Yrotation  HeadYaw             #0 
+                       degreesToRadians(mocapNETPose[13]),           #neck_Xrotation  HeadPitch           #1 
+                       0,                                            #We dont want this :P #LHipYawPitch  #2
+                        degreesToRadians(mocapNETPose[447]),         #lhip_Zrotation LHipRoll             #3
+                        degreesToRadians(mocapNETPose[448]) -0.3976, #lhip_Xrotation#LHipPitch            #4
+                       #LKneePitch     #5
+                       #LAnklePitch    #6
+                       #LAnkleRoll     #7
+                       #RHipYawPitch   #8
+                       #RHipRoll       #9  
+                       #RHipPitch      #10
+                       #RKneePitch     #11
+                       #RAnklePitch    #12  
+                       #RAnkleRoll     #13
+                       #LShoulderPitch #14
+                       #LShoulderRoll  #15
+                       #LElbowYaw      #16
+                       #LElbowRoll     #17
+                       #LWristYaw      #18
+                       #LHand          #19
+                       #RShoulderPitch #20
+                       #RShoulderRoll  #21
+                       #RElbowYaw      #22
+                       #RElbowRoll     #23
+                       #RWristYaw      #24
+                       #RHand          #25 
+                      ]
 
     #HEAD
     #------------------------------------------------- 
@@ -955,7 +1003,7 @@ def mnet_new_pose_callback(msg):
     #    if (msg.data[i]!=0.0):
     #        print (i,"[",mocapNETLabels[i],"] = ",msg.data[i]," ")
     print("Pushing data")
-    result = action_client(mocapNETPose,moveHead,moveRightArm,moveLeftArm)
+    result = broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm)
     #print("Result:", action_client)
 
 
@@ -982,7 +1030,7 @@ if __name__ == '__main__':
         for i in range(0,10):
             print("Warmup!")
             rate.sleep()
-            result = action_client(list(),0,0,0) # the zeros will also prevent MocapNET input
+            result = broadcast(list(),0,0,0) # the zeros will also prevent MocapNET input
 
         #subscribe to a topic using rospy.Subscriber class "std_msgs/Float32MultiArray"
         sub=rospy.Subscriber('/mocapnet_rosnode/bvhFrame', Float32MultiArray, mnet_new_pose_callback)
