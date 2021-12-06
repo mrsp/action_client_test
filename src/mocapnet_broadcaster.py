@@ -3,16 +3,18 @@
 
 #Last change by Ammar 6/12/21
 import rospy, time, math, cv2, sys
-import actionlib
+#import actionlib
 import copy
-import whole_body_ik_msgs.msg
+#import whole_body_ik_msgs.msg
+from std_msgs.msg import Float32MultiArray
+from sensor_msgs.msg import JointState
 
+#Master Switch to turn stuff off..
 moveHead=1
 moveRightArm=1
 moveLeftArm=1
 moveRightLeg=1
 moveLeftLeg=1
-
 
 
 def getMocapNETJointNames():
@@ -518,19 +520,6 @@ def getMocapNETJointNames():
  bn.append("toe5-3.l_Yrotation") # 497
  return bn
 #---------------------------------------------------
- 
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def decomposeRollPitchYawtoRollYaw(limbLength,roll,pitch,yaw):
@@ -542,56 +531,7 @@ def degreesToRadians(degrees):
   return degrees * math.pi / 180.0
 
 
-
-from nav_msgs.msg import Odometry
-from sensor_msgs.msg import JointState
-CoM = False
-LLeg = False
-RLeg = False
-odom = False
-joints = False
-LLeg_odom = Odometry()
-RLeg_odom = Odometry()
-CoM_odom = Odometry()
-base_odom = Odometry()
-joint_state = JointState()
-
-
-
-def JointStatecallback(data):
-    global joint_state
-    joint_state = data
-    global joints 
-    joints = True
-
-def LLegcallback(data):
-    global LLeg_odom
-    LLeg_odom = data
-    global LLeg 
-    LLeg = True
-
-def RLegcallback(data):
-    global RLeg_odom
-    RLeg_odom = data
-    global RLeg
-    RLeg = True
-
-def CoMcallback(data):
-    global CoM_odom
-    CoM_odom = data
-    global CoM 
-    CoM = True
-
-def OdomCallback(data):
-    global base_odom
-    base_odom = data
-    global odom
-    odom = True 
-
-
-from std_msgs.msg import Float32MultiArray
 mocapNETLabels = getMocapNETJointNames()
-
 mocapNETPose = list()
 
 def broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm,moveRightLeg,moveLeftLeg):
@@ -601,9 +541,16 @@ def broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm,moveRightLeg,moveLe
 
     #The NAO poses.. 
     #http://doc.aldebaran.com/2-1/family/robots/postures_robot.html
+
+    
     
     #The ROS JointState Sensor Message
     #http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/JointState.html
+    joints = JointState()
+
+    joints.header = Header()
+    joints.header.stamp = rospy.Time.now()
+
     joints.name = [ 
                    'HeadYaw',        #0 
                    'HeadPitch',      #1 
@@ -662,344 +609,47 @@ def broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm,moveRightLeg,moveLe
                        0.0                                           #Not actuating hand     RHand          #25 
                       ]
 
+    joints.velocity = []
+    joints.effort = []
+
+    #If we want to disable parts of the body
+    #set them to their neutral value
     if (moveHead==0):
        joints.position[0] = 0.0 
        joints.position[1] = 0.0
 
     if (moveLeftLeg==0):
-       joints.position[0] = 0.0 
-       joints.position[1] = 0.0
- 
-    #HEAD
-    #------------------------------------------------- 
-    pose.desired_angle = 0.0
-    pose.name = "HeadYaw"
-    if (mocapNETPoseExists and moveHead):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[14]) #neck_Yrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = 0.0
-    pose.name = "HeadPitch"
-    if (mocapNETPoseExists and moveHead):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[13]) #neck_Xrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
+       joints.position[3] = 0.0 
+       joints.position[4] = -0.3976 
+       joints.position[5] = 0.85 
+       joints.position[6] = -0.4427
+       joints.position[7] = -0.009
     
+    if (moveRightLeg==0):
+       joints.position[9]  = 0.0 
+       joints.position[10] = -0.3976 
+       joints.position[11] = 0.85 
+       joints.position[12] = -0.4427
+       joints.position[13] = -0.009
+ 
+    if (moveLeftArm==0):
+       joints.position[14] = 1.5 
+       joints.position[15] = 0.15 
+       joints.position[16] = 0.0 
+       joints.position[17] = -0.0349066
+       joints.position[18] = -1.5
 
-    #LEFT LEG
-    #------------------------------------------------- 
-    pose.desired_angle = 0.0
-    pose.name = "LHipYawPitch"
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = 0.0
-    pose.name = "LHipRoll"
-    if (mocapNETPoseExists and moveLeftLeg):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[447]) #lhip_Zrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = -0.3976
-    pose.name = "LHipPitch"
-    if (mocapNETPoseExists and moveLeftLeg):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[448]) -0.3976 #lhip_Xrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle =  0.85
-    pose.name = "LKneePitch"
-    if (mocapNETPoseExists and moveLeftLeg):
-      pose.desired_angle =  0.85 + degreesToRadians(mocapNETPose[451]) #lknee_Xrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = -0.4427
-    pose.name = "LAnklePitch"
-    if (mocapNETPoseExists and moveLeftLeg):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[454])-0.4427 #lfoot_Xrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = -0.009
-    pose.name = "LAnkleRoll"
-    if (mocapNETPoseExists and moveLeftLeg):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[453]) #lfoot_Zrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
+    if (moveRightArm==0):
+       joints.position[20] = 1.5 
+       joints.position[21] = -0.15 
+       joints.position[22] = 0.0 
+       joints.position[23] = 0.0349066
+       joints.position[24] = 1.5
+     
 
-
-    #RIGHT LEG
-    #------------------------------------------------- 
-    pose.desired_angle = 0.0
-    pose.name = "RHipYawPitch"
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = 0.0
-    pose.name = "RHipRoll"
-    if (mocapNETPoseExists and moveRightLeg):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[393]) #rhip_Zrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = -0.3976
-    pose.name = "RHipPitch"
-    if (mocapNETPoseExists and moveRightLeg):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[394]) -0.3976 #rhip_Xrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle =  0.85
-    pose.name = "RKneePitch"
-    if (mocapNETPoseExists and moveRightLeg):
-      pose.desired_angle =  0.85 + degreesToRadians(mocapNETPose[397]) #rknee_Xrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = -0.4427
-    pose.name = "RAnklePitch"
-    if (mocapNETPoseExists and moveRightLeg):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[400])-0.4427 #rfoot_Xrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = -0.009
-    pose.name = "RAnkleRoll"
-    if (mocapNETPoseExists and moveRightLeg):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[399]) #rfoot_Zrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-  
-    #LEFT ARM
-    #------------------------------------------------- 
-    pose.desired_angle =  1.5
-    pose.name = "LShoulderPitch"
-    if (mocapNETPoseExists and moveLeftArm):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[316]) #lshoulder_Xrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = 0.15
-    pose.name = "LShoulderRoll"
-    if (mocapNETPoseExists and moveLeftArm):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[317]+90) #lshoulder_Yrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = 0
-    pose.name = "LElbowYaw"
-    if (mocapNETPoseExists and moveLeftArm):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[319]) #lelbow_Yrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle =  -0.0349066
-    pose.name = "LElbowRoll"
-    if (mocapNETPoseExists and moveLeftArm):
-      pose.desired_angle =  degreesToRadians(-mocapNETPose[320]) #lelbow_Xrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = -1.5
-    pose.name = "LWristYaw"
-    if (mocapNETPoseExists and moveLeftArm):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[321]) #lhand_Zrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = 0
-    pose.name = "LHand"
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-
-    #RIGHT ARM
-    #------------------------------------------------- 
-    pose.desired_angle =  1.5
-    pose.name = "RShoulderPitch"
-    if (mocapNETPoseExists and moveRightArm):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[238]) #rshoulder_Xrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = -0.15
-    pose.name = "RShoulderRoll"
-    if (mocapNETPoseExists and moveRightArm):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[239]-90) #rshoulder_Yrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle =  0
-    pose.name = "RElbowYaw"
-    if (mocapNETPoseExists and moveRightArm):
-      pose.desired_angle =  degreesToRadians(-mocapNETPose[241]) #relbow_Xrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = 0.0349066
-    pose.name = "RElbowRoll"
-    if (mocapNETPoseExists and moveRightArm):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[242]) #relbow_Yrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = 1.5
-    pose.name = "RWristYaw"
-    if (mocapNETPoseExists and moveRightArm):
-      pose.desired_angle =  degreesToRadians(mocapNETPose[244]) #rhand_Xrotation
-      print ("pose[",pose.name,"] = ",pose.desired_angle," ")
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-    pose.desired_angle = 0
-    pose.name = "RHand"
-    goal.Joints.append(copy.deepcopy(pose))
-    #------------------------------------------------- 
-
-
-
-    #Set Linear Task for CoM
-    goal.CoM.linear_task.desired_position.x = CoM_odom.pose.pose.position.x
-    goal.CoM.linear_task.desired_position.y = CoM_odom.pose.pose.position.y
-    goal.CoM.linear_task.desired_position.z = CoM_odom.pose.pose.position.z
-    goal.CoM.linear_task.desired_linear_velocity.x = CoM_odom.twist.twist.linear.x
-    goal.CoM.linear_task.desired_linear_velocity.y = CoM_odom.twist.twist.linear.y
-    goal.CoM.linear_task.desired_linear_velocity.z = CoM_odom.twist.twist.linear.z
-    goal.CoM.linear_task.weight = -1 #5.0e-1
-    goal.CoM.linear_task.gain  = 0.35
-
-
-    #Set Angular Task for Torso
-    goal.Torso.angular_task.desired_angular_velocity.x = 0.0
-    goal.Torso.angular_task.desired_angular_velocity.y = 0.0
-    goal.Torso.angular_task.desired_angular_velocity.z = 0.0
-    goal.Torso.angular_task.desired_orientation.x = 0.0
-    goal.Torso.angular_task.desired_orientation.y = 0.0
-    goal.Torso.angular_task.desired_orientation.z = 0.0
-    goal.Torso.angular_task.desired_orientation.w = 1.0
-    goal.Torso.angular_task.weight = -1 #1.0e-3
-    goal.Torso.angular_task.gain  = 0.2
-
-
-    #Set Leg Task to keep their pose w.r.t ground
-    goal.LLeg.linear_task.desired_position.x = LLeg_odom.pose.pose.position.x
-    goal.LLeg.linear_task.desired_position.y = LLeg_odom.pose.pose.position.y
-    goal.LLeg.linear_task.desired_position.z = LLeg_odom.pose.pose.position.z
-    goal.LLeg.linear_task.desired_linear_velocity.x = 0.000
-    goal.LLeg.linear_task.desired_linear_velocity.y = 0.000
-    goal.LLeg.linear_task.desired_linear_velocity.z = 0.000
-    goal.LLeg.linear_task.weight =  2.0
-    goal.LLeg.linear_task.gain  = 0.35
-
-    goal.LLeg.angular_task.desired_angular_velocity.x = 0.0
-    goal.LLeg.angular_task.desired_angular_velocity.y = 0.0
-    goal.LLeg.angular_task.desired_angular_velocity.z = 0.0
-    goal.LLeg.angular_task.desired_orientation.x = LLeg_odom.pose.pose.orientation.x
-    goal.LLeg.angular_task.desired_orientation.y = LLeg_odom.pose.pose.orientation.y
-    goal.LLeg.angular_task.desired_orientation.z = LLeg_odom.pose.pose.orientation.z
-    goal.LLeg.angular_task.desired_orientation.w = LLeg_odom.pose.pose.orientation.w
-    goal.LLeg.angular_task.weight =  2.0
-    goal.LLeg.angular_task.gain  = 0.2
-
-
-    goal.RLeg.linear_task.desired_position.x = RLeg_odom.pose.pose.position.x
-    goal.RLeg.linear_task.desired_position.y = RLeg_odom.pose.pose.position.y
-    goal.RLeg.linear_task.desired_position.z = RLeg_odom.pose.pose.position.z
-    goal.RLeg.linear_task.desired_linear_velocity.x = 0.000
-    goal.RLeg.linear_task.desired_linear_velocity.y = 0.000
-    goal.RLeg.linear_task.desired_linear_velocity.z = 0.000
-    goal.RLeg.linear_task.weight =  2.0
-    goal.RLeg.linear_task.gain  = 0.35
-
-    goal.RLeg.angular_task.desired_orientation.x = RLeg_odom.pose.pose.orientation.x
-    goal.RLeg.angular_task.desired_orientation.y = RLeg_odom.pose.pose.orientation.y
-    goal.RLeg.angular_task.desired_orientation.z = RLeg_odom.pose.pose.orientation.z
-    goal.RLeg.angular_task.desired_orientation.w = RLeg_odom.pose.pose.orientation.w
-    goal.RLeg.angular_task.desired_angular_velocity.x = 0.0
-    goal.RLeg.angular_task.desired_angular_velocity.y = 0.0
-    goal.RLeg.angular_task.desired_angular_velocity.z = 0.0
-    goal.RLeg.angular_task.weight = 2.0
-    goal.RLeg.angular_task.gain  = 0.2
-
-
-
-
-    ####################################################################
-    ####################################################################
-    #ARM  + Head CONTROL IS HERE
-    goal.RHand.linear_task.desired_position.x = 0 #Fix this 
-    goal.RHand.linear_task.desired_position.y = 0 #Fix this 
-    goal.RHand.linear_task.desired_position.z = 0 #Fix this 
-    goal.RHand.linear_task.desired_linear_velocity.x = 0.000 #Leave 0 here
-    goal.RHand.linear_task.desired_linear_velocity.y = 0.000 #Leave 0 here
-    goal.RHand.linear_task.desired_linear_velocity.z = 0.000 #Leave 0 here
-    goal.RHand.linear_task.weight = -1 #Fix this 
-    goal.RHand.linear_task.gain  = 0.15 #Fix this 
-
-
-    goal.RHand.angular_task.desired_orientation.x = 0 #Fix this 
-    goal.RHand.angular_task.desired_orientation.y = 0 #Fix this 
-    goal.RHand.angular_task.desired_orientation.z = 0 #Fix this 
-    goal.RHand.angular_task.desired_orientation.w = 0 #Fix this 
-    goal.RHand.angular_task.desired_angular_velocity.x = 0.0 #Leave 0 here
-    goal.RHand.angular_task.desired_angular_velocity.y = 0.0 #Leave 0 here
-    goal.RHand.angular_task.desired_angular_velocity.z = 0.0 #Leave 0 here
-    goal.RHand.angular_task.weight = -1 #Fix this 
-    goal.RHand.angular_task.gain  = 0.1 #Fix this 
-
-    goal.LHand.linear_task.desired_position.x = 0 #Fix this 
-    goal.LHand.linear_task.desired_position.y = 0 #Fix this 
-    goal.LHand.linear_task.desired_position.z = 0 #Fix this 
-    goal.LHand.linear_task.desired_linear_velocity.x = 0.000 #Leave 0 here
-    goal.LHand.linear_task.desired_linear_velocity.y = 0.000 #Leave 0 here
-    goal.LHand.linear_task.desired_linear_velocity.z = 0.000 #Leave 0 here
-    goal.LHand.linear_task.weight = -1 #Fix this 
-    goal.LHand.linear_task.gain  = 0.15 #Fix this 
-
-
-    goal.LHand.angular_task.desired_orientation.x = 0 #Fix this 
-    goal.LHand.angular_task.desired_orientation.y = 0 #Fix this 
-    goal.LHand.angular_task.desired_orientation.z = 0 #Fix this 
-    goal.LHand.angular_task.desired_orientation.w = 0 #Fix this 
-    goal.LHand.angular_task.desired_angular_velocity.x = 0.0 #Leave 0 here
-    goal.LHand.angular_task.desired_angular_velocity.y = 0.0 #Leave 0 here
-    goal.LHand.angular_task.desired_angular_velocity.z = 0.0 #Leave 0 here
-    goal.LHand.angular_task.weight = -1 #Fix this 
-    goal.LHand.angular_task.gain  = 0.1 #Fix this 
-
-
-    #Translating the Head is not adviced
-    # goal.Head.linear_task.desired_position.x = 0 #Fix this 
-    # goal.Head.linear_task.desired_position.y = 0 #Fix this 
-    # goal.Head.linear_task.desired_position.z = 0 #Fix this 
-    # goal.Head.linear_task.desired_linear_velocity.x = 0.000 #Leave 0 here
-    # goal.Head.linear_task.desired_linear_velocity.y = 0.000 #Leave 0 here
-    # goal.Head.linear_task.desired_linear_velocity.z = 0.000 #Leave 0 here
-    # goal.Head.linear_task.weight = 0 #Fix this 
-    # goal.Head.linear_task.gain  = 0 #Fix this 
-
-
-    goal.Head.angular_task.desired_orientation.x = 0 #Fix this 
-    goal.Head.angular_task.desired_orientation.y = 0 #Fix this 
-    goal.Head.angular_task.desired_orientation.z = 1 #Fix this 
-    goal.Head.angular_task.desired_orientation.w = 0 #Fix this 
-    goal.Head.angular_task.desired_angular_velocity.x = 0.0 #Leave 0 here
-    goal.Head.angular_task.desired_angular_velocity.y = 0.0 #Leave 0 here
-    goal.Head.angular_task.desired_angular_velocity.z = 0.0 #Leave 0 here
-    goal.Head.angular_task.weight = -1 #Fix this 
-    goal.Head.angular_task.gain  = 0.2 #Fix this 
-    ####################################################################
-    ####################################################################
-
-    # Sends the goal to the action server.
-    client.send_goal(goal)
-    print("Goal Sent")
-    # Waits for the server to finish performing the action.
-    client.wait_for_result()
-    print("Result received")
-    # Prints out the result of executing the action
-    return client.get_result()  
+    #Publish the joint data.. 
+    pub.publish(joints)
+    return
 
 
 #define function/functions to provide the required functionality
@@ -1011,7 +661,7 @@ def mnet_new_pose_callback(msg):
     #    if (msg.data[i]!=0.0):
     #        print (i,"[",mocapNETLabels[i],"] = ",msg.data[i]," ")
     print("Pushing data")
-    result = broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm)
+    result = broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm,moveRightLeg,moveLeftLeg)
     #print("Result:", action_client)
 
 
@@ -1038,7 +688,7 @@ if __name__ == '__main__':
         for i in range(0,10):
             print("Warmup!")
             rate.sleep()
-            result = broadcast(list(),0,0,0) # the zeros will also prevent MocapNET input
+            result = broadcast(list(),0,0,0,0,0) # the zeros will also prevent MocapNET input
 
         #subscribe to a topic using rospy.Subscriber class "std_msgs/Float32MultiArray"
         sub=rospy.Subscriber('/mocapnet_rosnode/bvhFrame', Float32MultiArray, mnet_new_pose_callback)
