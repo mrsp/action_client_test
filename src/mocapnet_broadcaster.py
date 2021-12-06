@@ -3,11 +3,10 @@
 
 #Last change by Ammar 6/12/21
 import rospy, time, math, cv2, sys
-#import actionlib
 import copy
-#import whole_body_ik_msgs.msg
 from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import JointState
+from std_msgs.msg import Header
 
 #Master Switch to turn stuff off..
 moveHead=1
@@ -531,6 +530,7 @@ def degreesToRadians(degrees):
   return degrees * math.pi / 180.0
 
 
+pub=rospy.Publisher('joint_states', JointState, queue_size=10)
 mocapNETLabels = getMocapNETJointNames()
 mocapNETPose = list()
 
@@ -542,8 +542,6 @@ def broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm,moveRightLeg,moveLe
     #The NAO poses.. 
     #http://doc.aldebaran.com/2-1/family/robots/postures_robot.html
 
-    
-    
     #The ROS JointState Sensor Message
     #http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/JointState.html
     joints = JointState()
@@ -614,32 +612,32 @@ def broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm,moveRightLeg,moveLe
 
     #If we want to disable parts of the body
     #set them to their neutral value
-    if (moveHead==0):
+    if ( (mocapNETPoseExists==0) or (moveHead==0) ):
        joints.position[0] = 0.0 
        joints.position[1] = 0.0
 
-    if (moveLeftLeg==0):
+    if ( (mocapNETPoseExists==0) or (moveLeftLeg==0) ):
        joints.position[3] = 0.0 
        joints.position[4] = -0.3976 
        joints.position[5] = 0.85 
        joints.position[6] = -0.4427
        joints.position[7] = -0.009
     
-    if (moveRightLeg==0):
+    if ( (mocapNETPoseExists==0) or (moveRightLeg==0) ):
        joints.position[9]  = 0.0 
        joints.position[10] = -0.3976 
        joints.position[11] = 0.85 
        joints.position[12] = -0.4427
        joints.position[13] = -0.009
  
-    if (moveLeftArm==0):
+    if ( (mocapNETPoseExists==0) or (moveLeftArm==0) ):
        joints.position[14] = 1.5 
        joints.position[15] = 0.15 
        joints.position[16] = 0.0 
        joints.position[17] = -0.0349066
        joints.position[18] = -1.5
 
-    if (moveRightArm==0):
+    if ( (mocapNETPoseExists==0) or (moveRightArm==0) ):
        joints.position[20] = 1.5 
        joints.position[21] = -0.15 
        joints.position[22] = 0.0 
@@ -660,9 +658,7 @@ def mnet_new_pose_callback(msg):
     #for i in range(0,len(msg.data)):
     #    if (msg.data[i]!=0.0):
     #        print (i,"[",mocapNETLabels[i],"] = ",msg.data[i]," ")
-    print("Pushing data")
     result = broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm,moveRightLeg,moveLeftLeg)
-    #print("Result:", action_client)
 
 
 
@@ -673,35 +669,22 @@ if __name__ == '__main__':
         # Initializes a rospy node so that the SimpleActionClient can
         # publish and subscribe over ROS.
         rospy.init_node('mocapnet_robot_control')
-        rospy.Subscriber("/nao_raisim_ros/LLeg/odom", Odometry, LLegcallback)
-        rospy.Subscriber("/nao_raisim_ros/RLeg/odom", Odometry, RLegcallback)
-        rospy.Subscriber("/nao_raisim_ros/CoM", Odometry, CoMcallback)
-        rospy.Subscriber("/nao_raisim_ros/odom", Odometry, OdomCallback)
-        rospy.Subscriber("/nao_raisim_ros/joint_states", JointState, JointStatecallback)
 
         print("Running on Python ")
         print(sys.version) 
  
-        rate = rospy.Rate(100) # 10hz
-        
-        #Give a first "default" action before subscribing and switching to MocapNET input
-        for i in range(0,10):
-            print("Warmup!")
-            rate.sleep()
-            result = broadcast(list(),0,0,0,0,0) # the zeros will also prevent MocapNET input
+        rate = rospy.Rate(100) 
 
         #subscribe to a topic using rospy.Subscriber class "std_msgs/Float32MultiArray"
         sub=rospy.Subscriber('/mocapnet_rosnode/bvhFrame', Float32MultiArray, mnet_new_pose_callback)
-
-        loops=0 
+        pub=rospy.Publisher('joint_states', JointState, queue_size=10)
+        
+        print("Entering broadcaster loop : ")
         while not rospy.is_shutdown():
-            loops=loops+1
+            rospy.spin() 
             rate.sleep()
-            if (loops%100==0): 
-               print(".")
-            #if(LLeg and RLeg and CoM and odom and joints):
-            #    break
+        print("Done")
  
     except rospy.ROSInterruptException:
-        print("program interrupted before completion")
+        print("Program interrupted before completion")
 
