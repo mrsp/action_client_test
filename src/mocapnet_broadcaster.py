@@ -634,34 +634,42 @@ def broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm,moveRightLeg,moveLe
                  ]
 
     joints.position = [
-                       degreesToRadians(mocapNETPose[14]),           #neck_Yrotation  HeadYaw             #0 
-                       degreesToRadians(mocapNETPose[13]),           #neck_Xrotation  HeadPitch           #1 
-                       0,                                            #We dont want this :P #LHipYawPitch  #2
-                        degreesToRadians(mocapNETPose[447]),         #lhip_Zrotation LHipRoll             #3
-                        degreesToRadians(mocapNETPose[448]) -0.3976, #lhip_Xrotation#LHipPitch            #4
-                       #LKneePitch     #5
-                       #LAnklePitch    #6
-                       #LAnkleRoll     #7
-                       #RHipYawPitch   #8
-                       #RHipRoll       #9  
-                       #RHipPitch      #10
-                       #RKneePitch     #11
-                       #RAnklePitch    #12  
-                       #RAnkleRoll     #13
-                       #LShoulderPitch #14
-                       #LShoulderRoll  #15
-                       #LElbowYaw      #16
-                       #LElbowRoll     #17
-                       #LWristYaw      #18
-                       #LHand          #19
-                       #RShoulderPitch #20
-                       #RShoulderRoll  #21
-                       #RElbowYaw      #22
-                       #RElbowRoll     #23
-                       #RWristYaw      #24
-                       #RHand          #25 
+                       degreesToRadians(mocapNETPose[14]),           #neck_Yrotation         HeadYaw        #0 
+                       degreesToRadians(mocapNETPose[13]),           #neck_Xrotation         HeadPitch      #1 
+                       0.0,                                          #We dont want this :P   LHipYawPitch   #2
+                       degreesToRadians(mocapNETPose[447]),          #lhip_Zrotation         LHipRoll       #3
+                       degreesToRadians(mocapNETPose[448]) -0.3976,  #lhip_Xrotation         LHipPitch      #4
+                       0.85 + degreesToRadians(mocapNETPose[451]),   #lknee_Xrotation        LKneePitch     #5
+                       degreesToRadians(mocapNETPose[454])-0.4427,   #lfoot_Xrotation        LAnklePitch    #6
+                       degreesToRadians(mocapNETPose[453]),          #lfoot_Zrotation        LAnkleRoll     #7
+                       0.0,                                          #We dont want this :P   RHipYawPitch   #8
+                       degreesToRadians(mocapNETPose[393]),          #rhip_Zrotation         RHipRoll       #9  
+                       degreesToRadians(mocapNETPose[394]) -0.3976,  #rhip_Xrotation         RHipPitch      #10
+                       0.85 + degreesToRadians(mocapNETPose[397]),   #rknee_Xrotation        RKneePitch     #11
+                       degreesToRadians(mocapNETPose[400])-0.4427,   #rfoot_Xrotation        RAnklePitch    #12  
+                       degreesToRadians(mocapNETPose[399]),          #rfoot_Zrotation        RAnkleRoll     #13
+                       degreesToRadians(mocapNETPose[316]),          #lshoulder_Xrotation    LShoulderPitch #14
+                       degreesToRadians(mocapNETPose[317]+90),       #lshoulder_Yrotation    LShoulderRoll  #15
+                       degreesToRadians(mocapNETPose[319]),          #lelbow_Yrotation       LElbowYaw      #16
+                       degreesToRadians(-mocapNETPose[320]),         #lelbow_Xrotation       LElbowRoll     #17
+                       degreesToRadians(mocapNETPose[321]),          #lhand_Zrotation        LWristYaw      #18
+                       0.0,                                          #Not actuating hand     LHand          #19
+                       degreesToRadians(mocapNETPose[238]),          #rshoulder_Xrotation    RShoulderPitch #20
+                       degreesToRadians(mocapNETPose[239]-90),       #rshoulder_Yrotation    RShoulderRoll  #21
+                       degreesToRadians(-mocapNETPose[241]),         #relbow_Xrotation       RElbowYaw      #22
+                       degreesToRadians(mocapNETPose[242]),          #relbow_Yrotation       RElbowRoll     #23
+                       degreesToRadians(mocapNETPose[244]),          #rhand_Xrotation        RWristYaw      #24
+                       0.0                                           #Not actuating hand     RHand          #25 
                       ]
 
+    if (moveHead==0):
+       joints.position[0] = 0.0 
+       joints.position[1] = 0.0
+
+    if (moveLeftLeg==0):
+       joints.position[0] = 0.0 
+       joints.position[1] = 0.0
+ 
     #HEAD
     #------------------------------------------------- 
     pose.desired_angle = 0.0
