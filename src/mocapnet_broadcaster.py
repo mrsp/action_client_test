@@ -2,8 +2,7 @@
 #from __future__ import print_function 
 
 #Last change by Ammar 6/12/21
-import rospy, time, math, cv2, sys
-import copy
+import rospy, time, math, sys
 from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Header
@@ -12,8 +11,8 @@ from std_msgs.msg import Header
 moveHead=1
 moveRightArm=1
 moveLeftArm=1
-moveRightLeg=1
-moveLeftLeg=1
+moveRightLeg=0
+moveLeftLeg=0
 
 
 def getMocapNETJointNames():
@@ -530,11 +529,79 @@ def degreesToRadians(degrees):
   return degrees * math.pi / 180.0
 
 
-pub=rospy.Publisher('joint_states', JointState, queue_size=10)
+pub=rospy.Publisher('/mocapnet/joint_states', JointState, queue_size=10)
 mocapNETLabels = getMocapNETJointNames()
 mocapNETPose = list()
 
+#The ROS JointState Sensor Message
+#http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/JointState.html
+joints = JointState()
+joints.header = Header()
+joints.name = [
+    'HeadYaw',  # 0
+    'HeadPitch',  # 1
+    'LHipYawPitch',  # 2
+    'LHipRoll',  # 3
+    'LHipPitch',  # 4
+    'LKneePitch',  # 5
+    'LAnklePitch',  # 6
+    'LAnkleRoll',  # 7
+    'RHipYawPitch',  # 8
+    'RHipRoll',  # 9
+    'RHipPitch',  # 10
+    'RKneePitch',  # 11
+    'RAnklePitch',  # 12
+    'RAnkleRoll',  # 13
+    'LShoulderPitch',  # 14
+    'LShoulderRoll',  # 15
+    'LElbowYaw',  # 16
+    'LElbowRoll',  # 17
+    'LWristYaw',  # 18
+    'LHand',  # 19
+    'RShoulderPitch',  # 20
+    'RShoulderRoll',  # 21
+    'RElbowYaw',  # 22
+    'RElbowRoll',  # 23
+    'RWristYaw',  # 24
+    'RHand'  # 25
+]
+
+joints.position = [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -0.3976,
+    0.85,
+    -0.4427,
+    -0.009,
+    0.0,
+    0.0,
+    -0.3976,
+    0.85,
+    -0.4427,
+    -0.009,
+    1.5,
+    0.15,
+    0.0,
+    -0.0349066,
+    -1.5,
+    0.0,
+    1.5,
+    -0.15,
+    0.0,
+    0.0349066,
+    1.5,
+    0.0
+    ]
+
+joints.velocity = []
+joints.effort = []
+
 def broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm,moveRightLeg,moveLeftLeg):
+
+
+    joints.header.stamp = rospy.Time.now()
     mocapNETPoseExists = 0
     if (len(mocapNETPose)>0):
          mocapNETPoseExists=1
@@ -542,107 +609,47 @@ def broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm,moveRightLeg,moveLe
     #The NAO poses.. 
     #http://doc.aldebaran.com/2-1/family/robots/postures_robot.html
 
-    #The ROS JointState Sensor Message
-    #http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/JointState.html
-    joints = JointState()
-
-    joints.header = Header()
-    joints.header.stamp = rospy.Time.now()
-
-    joints.name = [ 
-                   'HeadYaw',        #0 
-                   'HeadPitch',      #1 
-                   'LHipYawPitch',   #2
-                   'LHipRoll',       #3
-                   'LHipPitch',      #4
-                   'LKneePitch',     #5
-                   'LAnklePitch',    #6
-                   'LAnkleRoll',     #7
-                   'RHipYawPitch',   #8
-                   'RHipRoll',       #9  
-                   'RHipPitch',      #10
-                   'RKneePitch',     #11
-                   'RAnklePitch',    #12  
-                   'RAnkleRoll',     #13
-                   'LShoulderPitch', #14
-                   'LShoulderRoll',  #15
-                   'LElbowYaw' ,     #16
-                   'LElbowRoll',     #17
-                   'LWristYaw',      #18
-                   'LHand',          #19
-                   'RShoulderPitch', #20
-                   'RShoulderRoll',  #21
-                   'RElbowYaw',      #22
-                   'RElbowRoll',     #23
-                   'RWristYaw',      #24
-                   'RHand'           #25
-                 ]
-
-    joints.position = [
-                       degreesToRadians(mocapNETPose[14]),           #neck_Yrotation         HeadYaw        #0 
-                       degreesToRadians(mocapNETPose[13]),           #neck_Xrotation         HeadPitch      #1 
-                       0.0,                                          #We dont want this :P   LHipYawPitch   #2
-                       degreesToRadians(mocapNETPose[447]),          #lhip_Zrotation         LHipRoll       #3
-                       degreesToRadians(mocapNETPose[448]) -0.3976,  #lhip_Xrotation         LHipPitch      #4
-                       0.85 + degreesToRadians(mocapNETPose[451]),   #lknee_Xrotation        LKneePitch     #5
-                       degreesToRadians(mocapNETPose[454])-0.4427,   #lfoot_Xrotation        LAnklePitch    #6
-                       degreesToRadians(mocapNETPose[453]),          #lfoot_Zrotation        LAnkleRoll     #7
-                       0.0,                                          #We dont want this :P   RHipYawPitch   #8
-                       degreesToRadians(mocapNETPose[393]),          #rhip_Zrotation         RHipRoll       #9  
-                       degreesToRadians(mocapNETPose[394]) -0.3976,  #rhip_Xrotation         RHipPitch      #10
-                       0.85 + degreesToRadians(mocapNETPose[397]),   #rknee_Xrotation        RKneePitch     #11
-                       degreesToRadians(mocapNETPose[400])-0.4427,   #rfoot_Xrotation        RAnklePitch    #12  
-                       degreesToRadians(mocapNETPose[399]),          #rfoot_Zrotation        RAnkleRoll     #13
-                       degreesToRadians(mocapNETPose[316]),          #lshoulder_Xrotation    LShoulderPitch #14
-                       degreesToRadians(mocapNETPose[317]+90),       #lshoulder_Yrotation    LShoulderRoll  #15
-                       degreesToRadians(mocapNETPose[319]),          #lelbow_Yrotation       LElbowYaw      #16
-                       degreesToRadians(-mocapNETPose[320]),         #lelbow_Xrotation       LElbowRoll     #17
-                       degreesToRadians(mocapNETPose[321]),          #lhand_Zrotation        LWristYaw      #18
-                       0.0,                                          #Not actuating hand     LHand          #19
-                       degreesToRadians(mocapNETPose[238]),          #rshoulder_Xrotation    RShoulderPitch #20
-                       degreesToRadians(mocapNETPose[239]-90),       #rshoulder_Yrotation    RShoulderRoll  #21
-                       degreesToRadians(-mocapNETPose[241]),         #relbow_Xrotation       RElbowYaw      #22
-                       degreesToRadians(mocapNETPose[242]),          #relbow_Yrotation       RElbowRoll     #23
-                       degreesToRadians(mocapNETPose[244]),          #rhand_Xrotation        RWristYaw      #24
-                       0.0                                           #Not actuating hand     RHand          #25 
-                      ]
-
-    joints.velocity = []
-    joints.effort = []
-
     #If we want to disable parts of the body
     #set them to their neutral value
-    if ( (mocapNETPoseExists==0) or (moveHead==0) ):
-       joints.position[0] = 0.0 
-       joints.position[1] = 0.0
+    if ( (mocapNETPoseExists==1) and (moveHead==1) ):
+        joints.position[0] = degreesToRadians(mocapNETPose[14])           #neck_Yrotation         HeadYaw        #0 
+        joints.position[1] = degreesToRadians(mocapNETPose[13])           #neck_Xrotation         HeadPitch      #1 
 
-    if ( (mocapNETPoseExists==0) or (moveLeftLeg==0) ):
-       joints.position[3] = 0.0 
-       joints.position[4] = -0.3976 
-       joints.position[5] = 0.85 
-       joints.position[6] = -0.4427
-       joints.position[7] = -0.009
+    if ( (mocapNETPoseExists==1) and (moveLeftLeg==1) ):
+        joints.position[2] = 0.0                                          #We dont want this :P   LHipYawPitch   #2
+        joints.position[3] = degreesToRadians(mocapNETPose[447])          #lhip_Zrotation         LHipRoll       #3
+        joints.position[4] = degreesToRadians(mocapNETPose[448]) -0.3976  #lhip_Xrotation         LHipPitch      #4
+        joints.position[5] = 0.85 + degreesToRadians(mocapNETPose[451])   #lknee_Xrotation        LKneePitch     #5            
+        joints.position[6] = degreesToRadians(mocapNETPose[454])-0.4427   #lfoot_Xrotation        LAnklePitch    #6
+        joints.position[7] = degreesToRadians(mocapNETPose[453])          #lfoot_Zrotation        LAnkleRoll     #7
+
     
-    if ( (mocapNETPoseExists==0) or (moveRightLeg==0) ):
-       joints.position[9]  = 0.0 
-       joints.position[10] = -0.3976 
-       joints.position[11] = 0.85 
-       joints.position[12] = -0.4427
-       joints.position[13] = -0.009
- 
-    if ( (mocapNETPoseExists==0) or (moveLeftArm==0) ):
-       joints.position[14] = 1.5 
-       joints.position[15] = 0.15 
-       joints.position[16] = 0.0 
-       joints.position[17] = -0.0349066
-       joints.position[18] = -1.5
+    if ( (mocapNETPoseExists==1) and (moveRightLeg==1) ):
+        joints.position[8]  = 0.0                                          #We dont want this :P   RHipYawPitch   #8
+        joints.position[9]  = degreesToRadians(mocapNETPose[393])          #rhip_Zrotation         RHipRoll       #9  
+        joints.position[10] = degreesToRadians(mocapNETPose[394]) -0.3976  #rhip_Xrotation         RHipPitch      #10
+        joints.position[11] = 0.85 + degreesToRadians(mocapNETPose[397])   #rknee_Xrotation        RKneePitch     #11
+        joints.position[12] = degreesToRadians(mocapNETPose[400])-0.4427   #rfoot_Xrotation        RAnklePitch    #12  
+        joints.position[13] = degreesToRadians(mocapNETPose[399])          #rfoot_Zrotation        RAnkleRoll     #13
 
-    if ( (mocapNETPoseExists==0) or (moveRightArm==0) ):
-       joints.position[20] = 1.5 
-       joints.position[21] = -0.15 
-       joints.position[22] = 0.0 
-       joints.position[23] = 0.0349066
-       joints.position[24] = 1.5
+ 
+    if ( (mocapNETPoseExists==1) and (moveLeftArm==1) ):
+        joints.position[14] = degreesToRadians(mocapNETPose[316])          #lshoulder_Xrotation    LShoulderPitch #14
+        joints.position[15] = degreesToRadians(mocapNETPose[317]+90)       #lshoulder_Yrotation    LShoulderRoll  #15
+        joints.position[16] = degreesToRadians(mocapNETPose[319])          #lelbow_Yrotation       LElbowYaw      #16
+        joints.position[17] = degreesToRadians(-mocapNETPose[320])         #lelbow_Xrotation       LElbowRoll     #17
+        joints.position[18] = degreesToRadians(mocapNETPose[321])          #lhand_Zrotation        LWristYaw      #18
+        joints.position[19] = 0.0                                          #Not actuating hand     LHand          #19
+
+
+    if ( (mocapNETPoseExists==1) and (moveRightArm==1) ):
+        joints.position[20] = degreesToRadians(mocapNETPose[238])          #rshoulder_Xrotation    RShoulderPitch #20
+        joints.position[21] = degreesToRadians(mocapNETPose[239]-90)       #rshoulder_Yrotation    RShoulderRoll  #21
+        joints.position[22] = degreesToRadians(-mocapNETPose[241])         #relbow_Xrotation       RElbowYaw      #22
+        joints.position[23] = degreesToRadians(mocapNETPose[242])          #relbow_Yrotation       RElbowRoll     #23
+        joints.position[24] = degreesToRadians(mocapNETPose[244])          #rhand_Xrotation        RWristYaw      #24
+        joints.position[25] = 0.0                                          #Not actuating hand     LHand          #19
+
      
 
     #Publish the joint data.. 
@@ -652,8 +659,6 @@ def broadcast(mocapNETPose,moveHead,moveRightArm,moveLeftArm,moveRightLeg,moveLe
 
 #define function/functions to provide the required functionality
 def mnet_new_pose_callback(msg):
-    #make_something_here_with msg.data
-    #rospy.loginfo("I heard %s", msg.data)
     mocapNETPose=msg.data
     #for i in range(0,len(msg.data)):
     #    if (msg.data[i]!=0.0):
@@ -677,11 +682,11 @@ if __name__ == '__main__':
 
         #subscribe to a topic using rospy.Subscriber class "std_msgs/Float32MultiArray"
         sub=rospy.Subscriber('/mocapnet_rosnode/bvhFrame', Float32MultiArray, mnet_new_pose_callback)
-        pub=rospy.Publisher('joint_states', JointState, queue_size=10)
+        pub=rospy.Publisher('/mocapnet/joint_states', JointState, queue_size=10)
         
         print("Entering broadcaster loop : ")
         while not rospy.is_shutdown():
-            rospy.spin() 
+            #rospy.spin() 
             rate.sleep()
         print("Done")
  
